@@ -16,6 +16,6 @@ export const userTypeDefs = gql`
   }
 
   type Mutation {
-    createUsername(username: String): CreateUsernameResponse
+    createUsername(username: String!): CreateUsernameResponse
   }
 `;

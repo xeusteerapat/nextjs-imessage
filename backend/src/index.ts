@@ -1,3 +1,4 @@
+import { GraphQLContext } from './types/interfaces/graphql-context';
 import { ApolloServer } from 'apollo-server-express';
 import {
   ApolloServerPluginDrainHttpServer,
@@ -8,8 +9,11 @@ import http from 'http';
 import { typeDefs } from './graphql/typeDefs';
 import { resolvers } from './graphql/resolvers';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import dotenv from 'dotenv';
+import { getSession } from 'next-auth/react';
 
 async function startApolloServer() {
+  dotenv.config();
   const app = express();
   const httpServer = http.createServer(app);
 
@@ -18,10 +22,22 @@ async function startApolloServer() {
     resolvers,
   });
 
+  const corsOptions = {
+    origin: process.env.CLIENT_ORIGIN,
+    credentials: true,
+  };
+
   const server = new ApolloServer({
     schema,
     csrfPrevention: true,
     cache: 'bounded',
+    context: async ({ req, res }): Promise<GraphQLContext> => {
+      const session = await getSession({ req });
+
+      return {
+        session,
+      };
+    },
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
       ApolloServerPluginLandingPageLocalDefault({ embed: true }),
@@ -30,7 +46,8 @@ async function startApolloServer() {
 
   await server.start();
 
-  server.applyMiddleware({ app });
+  server.applyMiddleware({ app, cors: corsOptions });
+
   await new Promise<void>(resolve =>
     httpServer.listen({ port: 4000 }, resolve)
   );

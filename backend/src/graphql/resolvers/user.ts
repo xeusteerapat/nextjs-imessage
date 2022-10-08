@@ -3,7 +3,11 @@ export const userResolvers = {
     searchUsers: () => {},
   },
   Mutation: {
-    createUsername: () => {},
+    createUsername: (_: any, args: { username: string }, context: any) => {
+      const { username } = args;
+      console.log('create username', username);
+      console.log('create ctx', context);
+    },
   },
   // Subscription: {
   //   createUsername: () => {},
