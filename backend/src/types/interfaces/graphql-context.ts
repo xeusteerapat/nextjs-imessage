@@ -1,9 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import { DefaultUser } from 'next-auth';
 
-export interface User extends DefaultUser {
+export interface User {
   id: string;
   username: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string;
 }
 
 export interface Session {
