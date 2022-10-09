@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client';
+import { useLazyQuery, useQuery } from '@apollo/client';
 import {
   Button,
   Input,
@@ -12,6 +12,12 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { userOperations } from '../../../../graphql/operations/user';
+import {
+  SearceUsersData,
+  SearceUsersInput,
+  SearchedUser,
+} from '../../../../types/interfaces/users-interfaces';
+import UsersSearchList from './UsersSearchList';
 
 interface IConversationModalProps {
   isOpen: boolean;
@@ -23,11 +29,30 @@ const ConversationModal: React.FC<IConversationModalProps> = ({
   onClose,
 }) => {
   const [username, setUsername] = React.useState('');
-  const { data, loading, error } = useQuery(userOperations.Queries.searchUsers);
+  const [participants, setParticipants] = React.useState<SearchedUser[]>([]);
+
+  const [searchUsers, { data, loading, error }] = useLazyQuery<
+    SearceUsersData,
+    SearceUsersInput
+  >(userOperations.Queries.searchUsers);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('ob subit');
+
+    searchUsers({
+      variables: {
+        username,
+      },
+    });
+  };
+
+  const addParticipant = (user: SearchedUser) => {
+    setParticipants(prev => [...prev, user]);
+    setUsername('');
+  };
+
+  const removeParticipant = (userId: string) => {
+    setParticipants(prev => prev.filter(user => user.id !== userId));
   };
 
   return (
@@ -35,7 +60,7 @@ const ConversationModal: React.FC<IConversationModalProps> = ({
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent pb={4}>
-          <ModalHeader>Modal Title</ModalHeader>
+          <ModalHeader>Create a Conversation</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <form onSubmit={handleSearch}>
@@ -45,11 +70,17 @@ const ConversationModal: React.FC<IConversationModalProps> = ({
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                 />
-                <Button type='submit' disabled={!username}>
+                <Button type='submit' disabled={!username} isLoading={loading}>
                   Search
                 </Button>
               </Stack>
             </form>
+            {data?.searchUsers && (
+              <UsersSearchList
+                users={data.searchUsers}
+                addParticipant={addParticipant}
+              />
+            )}
           </ModalBody>
         </ModalContent>
       </Modal>
