@@ -39,7 +39,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
           createUsername: { error },
         } = data;
 
-        throw new Error(error);
+        toast.error(error);
       }
 
       toast.success('Username Successfully created! 🎉');
@@ -63,7 +63,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
               value={username}
               onChange={e => setUsername(e.target.value)}
             />
-            <Button onClick={handleSubmit} width='100%'>
+            <Button onClick={handleSubmit} width='100%' isLoading={loading}>
               Save
             </Button>
           </>

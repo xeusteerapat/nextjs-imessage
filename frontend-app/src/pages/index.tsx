@@ -9,7 +9,7 @@ const Home: NextPage = () => {
   const { data: session } = useSession();
 
   const reloadSession = () => {
-    const event = new Event('visiblitychanger');
+    const event = new Event('visibilitychange');
     document.dispatchEvent(event);
   };
 
