@@ -1,16 +1,17 @@
-import { GraphQLContext } from './types/interfaces/graphql-context';
-import { ApolloServer } from 'apollo-server-express';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
   ApolloServerPluginDrainHttpServer,
   ApolloServerPluginLandingPageLocalDefault,
 } from 'apollo-server-core';
+import { ApolloServer } from 'apollo-server-express';
+import dotenv from 'dotenv';
 import express from 'express';
 import http from 'http';
-import { typeDefs } from './graphql/typeDefs';
-import { resolvers } from './graphql/resolvers';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import dotenv from 'dotenv';
 import { getSession } from 'next-auth/react';
+import { resolvers } from './graphql/resolvers';
+import { typeDefs } from './graphql/typeDefs';
+import { prismaClient } from './libs/prisma';
+import { GraphQLContext, Session } from './types/interfaces/graphql-context';
 
 async function startApolloServer() {
   dotenv.config();
@@ -32,10 +33,11 @@ async function startApolloServer() {
     csrfPrevention: true,
     cache: 'bounded',
     context: async ({ req, res }): Promise<GraphQLContext> => {
-      const session = await getSession({ req });
+      const session = (await getSession({ req })) as Session;
 
       return {
         session,
+        prisma: prismaClient,
       };
     },
     plugins: [
