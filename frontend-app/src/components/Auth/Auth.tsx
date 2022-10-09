@@ -1,20 +1,53 @@
+import { useMutation } from '@apollo/client';
 import { Button, Center, Stack, Text, Image, Input } from '@chakra-ui/react';
-import { Session } from 'next-auth';
+
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
-
-interface IAuthProps {
-  session: Session | null;
-  reloadSession: () => void;
-}
+import toast from 'react-hot-toast';
+import { userOperations } from '../../graphql/operations/user';
+import {
+  CreateUsernameData,
+  CreateUsernameVariables,
+  IAuthProps,
+} from '../../types/interfaces/auth-interface';
 
 const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
   const [username, setUsername] = useState('');
+  const [createUsername, { loading, error }] = useMutation<
+    CreateUsernameData,
+    CreateUsernameVariables
+  >(userOperations.Mutations.createUsername);
 
   const handleSubmit = async () => {
+    if (!username) {
+      return;
+    }
+
     try {
-      console.log('add username');
-    } catch (error) {
+      const { data } = await createUsername({
+        variables: {
+          username,
+        },
+      });
+
+      if (!data?.createUsername) {
+        throw new Error();
+      }
+
+      if (data.createUsername.error) {
+        const {
+          createUsername: { error },
+        } = data;
+
+        throw new Error(error);
+      }
+
+      toast.success('Username Successfully created! 🎉');
+
+      // reload session to obtain new username
+      reloadSession();
+    } catch (error: any) {
+      toast.error(error.message);
       console.log(error);
     }
   };
@@ -30,7 +63,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
               value={username}
               onChange={e => setUsername(e.target.value)}
             />
-            <Button onSubmit={handleSubmit} width='100%'>
+            <Button onClick={handleSubmit} width='100%'>
               Save
             </Button>
           </>
