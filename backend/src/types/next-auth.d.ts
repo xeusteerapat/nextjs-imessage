@@ -1,7 +1,8 @@
 import 'next-auth';
-
 declare module 'next-auth' {
-  // custome interface that extends from next-auth
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
   interface Session {
     user: User;
   }
@@ -9,5 +10,8 @@ declare module 'next-auth' {
   interface User {
     id: string;
     username: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
   }
 }
